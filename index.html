@@ -217,7 +217,7 @@
   </div>
 
   <div class="sb-foot">
-    <div class="sb-user">
+    <div class="sb-user" style="display:none">
       <div class="sb-av" id="sb-av-initials">HF</div>
       <div style="flex:1;min-width:0">
         <div class="sb-un" id="sb-name">Homer T. Favenir</div>
@@ -242,6 +242,13 @@
       <div class="top-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
         <input type="text" placeholder="Search students, courses..." oninput="globalSearch(this.value)" id="topSearchInp"/>
+      </div>
+      <div class="topbar-profile" onclick="goPage('profile',document.getElementById('nav-profile'))" title="Open My Profile">
+        <div class="topbar-profile-meta">
+          <div class="topbar-profile-name" id="facultyTopName">Homer T. Favenir</div>
+          <div class="topbar-profile-role" id="facultyTopRole">Faculty · CCS</div>
+        </div>
+        <div class="topbar-profile-av" id="facultyTopAvatar">HF</div>
       </div>
       <button class="btn btn-primary btn-sm" onclick="openAddCourse()">+ Add Course</button>
     </div>
@@ -884,7 +891,7 @@
 
     <div class="content">
       <!-- Admin Dashboard Page -->
-      <div id="admin-page-dashboard" class="page active">
+      <div id="admin-page-dashboard" class="page">
         <div class="page-hd">
           <div>
             <h2>Dashboard</h2>
@@ -951,11 +958,41 @@
             <h2>Faculty Management</h2>
             <p>Manage all faculty members and their assignments</p>
           </div>
-          <button class="btn btn-primary" onclick="alert('Add Faculty Modal')">+ Add Faculty</button>
+          <button class="btn btn-primary" onclick="openAddFacultyModal()">+ Add Faculty</button>
         </div>
-        <div class="card">
+
+        <!-- Faculty View Controls -->
+        <div style="display:flex;gap:10px;margin-bottom:15px;align-items:center">
+          <button class="btn" style="font-size:13px;padding:8px 12px;background:var(--maroon);color:#fff;border:none;cursor:pointer;border-radius:6px" onclick="setFacultyView('list'); this.style.background='var(--maroon)'; document.querySelector('[onclick*=setFacultyView][onclick*=card]').style.background='transparent'" id="faculty-view-list">📋 List View</button>
+          <button class="btn" style="font-size:13px;padding:8px 12px;background:transparent;color:var(--text);border:1px solid var(--border);cursor:pointer;border-radius:6px" onclick="setFacultyView('card'); this.style.background='var(--maroon)'; this.style.color='#fff'; document.querySelector('[onclick*=setFacultyView][onclick*=list]').style.background='transparent'; document.querySelector('[onclick*=setFacultyView][onclick*=list]').style.color='var(--text)'" id="faculty-view-card">🎴 Card View</button>
+          
+          <div style="flex:1;text-align:right">
+            <input type="text" placeholder="Search faculty by name or ID..." onkeyup="filterFacultyList(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;width:250px;font-size:13px"/>
+          </div>
+        </div>
+
+        <!-- Faculty List View -->
+        <div id="faculty-list-container" class="card" style="display:block">
           <div class="card-hd"><h3>Faculty Directory</h3></div>
-          <div id="admin-faculty-list"></div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border);background:#f5f5f5">
+                <th style="padding:12px;text-align:left;font-weight:600">#</th>
+                <th style="padding:12px;text-align:left;font-weight:600">Name</th>
+                <th style="padding:12px;text-align:left;font-weight:600">Email</th>
+                <th style="padding:12px;text-align:left;font-weight:600">Role</th>
+                <th style="padding:12px;text-align:left;font-weight:600">Department</th>
+                <th style="padding:12px;text-align:left;font-weight:600">Status</th>
+                <th style="padding:12px;text-align:center;font-weight:600">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-faculty-list"></tbody>
+          </table>
+        </div>
+
+        <!-- Faculty Card View -->
+        <div id="faculty-card-container" style="display:none">
+          <div id="admin-faculty-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:15px"></div>
         </div>
       </div>
 
@@ -966,10 +1003,35 @@
             <h2>Student Management</h2>
             <p>View and manage all enrolled students</p>
           </div>
+          <div style="display:flex;gap:15px;align-items:center">
+            <div style="text-align:right;font-size:13px;color:var(--text3)">
+              <div style="font-weight:700;color:var(--text)" id="admin-student-count">0</div>
+              <div>Total Students</div>
+            </div>
+            <input type="text" placeholder="Search students..." onkeyup="filterStudentList(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;width:250px;font-size:13px"/>
+          </div>
         </div>
+
         <div class="card">
           <div class="card-hd"><h3>Student Directory</h3></div>
-          <div id="admin-students-list"></div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:800px">
+              <thead>
+                <tr style="border-bottom:2px solid var(--border);background:#f5f5f5">
+                  <th style="padding:12px;text-align:left;font-weight:600">#</th>
+                  <th style="padding:12px;text-align:left;font-weight:600">Name</th>
+                  <th style="padding:12px;text-align:left;font-weight:600">Student ID</th>
+                  <th style="padding:12px;text-align:left;font-weight:600">Email</th>
+                  <th style="padding:12px;text-align:left;font-weight:600">Year</th>
+                  <th style="padding:12px;text-align:left;font-weight:600">Section</th>
+                  <th style="padding:12px;text-align:center;font-weight:600">Courses</th>
+                  <th style="padding:12px;text-align:center;font-weight:600">Status</th>
+                  <th style="padding:12px;text-align:center;font-weight:600">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-students-list"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -980,10 +1042,20 @@
             <h2>Enrollment Management</h2>
             <p>Manage course enrollments and bulk operations</p>
           </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn" style="font-size:13px;padding:8px 12px;background:var(--maroon);color:#fff;border:none;cursor:pointer;border-radius:6px" onclick="setEnrollmentView('course'); this.style.background='var(--maroon)'; document.querySelector('[onclick*=setEnrollmentView][onclick*=student]').style.background='transparent'; document.querySelector('[onclick*=setEnrollmentView][onclick*=student]').style.color='var(--text)'" id="enrollment-view-course">📚 By Course</button>
+            <button class="btn" style="font-size:13px;padding:8px 12px;background:transparent;color:var(--text);border:1px solid var(--border);cursor:pointer;border-radius:6px" onclick="setEnrollmentView('student'); this.style.background='var(--maroon)'; this.style.color='#fff'; document.querySelector('[onclick*=setEnrollmentView][onclick*=course]').style.background='transparent'; document.querySelector('[onclick*=setEnrollmentView][onclick*=course]').style.color='var(--text)'" id="enrollment-view-student">👥 By Student</button>
+          </div>
         </div>
-        <div class="card">
-          <div class="card-hd"><h3>Enrollment Status</h3></div>
+
+        <!-- Enrollment by Course View -->
+        <div id="enrollment-course-container">
           <div id="admin-enrollment-list"></div>
+        </div>
+
+        <!-- Enrollment by Student View -->
+        <div id="enrollment-student-container" style="display:none">
+          <div id="admin-enrollment-students"></div>
         </div>
       </div>
 
@@ -994,10 +1066,24 @@
             <h2>Faculty Designation</h2>
             <p>Manage faculty roles and subject specializations</p>
           </div>
+          <button class="btn btn-primary" onclick="openAddDesignationModal()">+ Add Designation</button>
         </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px;margin-bottom:20px" id="admin-designation-list"></div>
+
         <div class="card">
-          <div class="card-hd"><h3>Designations</h3></div>
-          <div id="admin-designation-list"></div>
+          <div class="card-hd"><h3>Faculty by Designation</h3></div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border);background:#f5f5f5">
+                <th style="padding:12px;text-align:left;font-weight:600">Role</th>
+                <th style="padding:12px;text-align:left;font-weight:600">Department</th>
+                <th style="padding:12px;text-align:center;font-weight:600">Faculty Count</th>
+                <th style="padding:12px;text-align:center;font-weight:600">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-designation-table"></tbody>
+          </table>
         </div>
       </div>
 
@@ -1008,11 +1094,10 @@
             <h2>Curriculum Management</h2>
             <p>Define and manage academic curriculum</p>
           </div>
+          <button class="btn btn-primary" onclick="openAddCurriculumModal()">+ Add Program</button>
         </div>
-        <div class="card">
-          <div class="card-hd"><h3>Programs</h3></div>
-          <div id="admin-curriculum-list"></div>
-        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:15px" id="admin-curriculum-list"></div>
       </div>
     </div>
   </div>
@@ -2623,6 +2708,125 @@ setInterval(function() {
   document.getElementById('adminTopbarTime').textContent = now.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit', hour12: true});
 }, 1000);
 </script>
+
+<!-- Add Faculty Modal -->
+<div id="addFacultyModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--radius);width:90%;max-width:500px;max-height:80vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.2)">
+    <div style="padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h2 style="margin:0;font-size:18px;color:var(--text)">Add New Faculty</h2>
+      <button onclick="closeAddFacultyModal()" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button>
+    </div>
+    <div style="padding:20px">
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--text)">Full Name *</label>
+        <input type="text" id="newFacultyName" placeholder="Dr. Jane Doe" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--text)">Email Address *</label>
+        <input type="email" id="newFacultyEmail" placeholder="jane.doe@uphsd.edu.ph" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--text)">Department *</label>
+        <select id="newFacultyDept" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+          <option>Select Department</option>
+          <option>College of Computer Studies</option>
+          <option>College of Engineering</option>
+          <option>College of Arts</option>
+        </select>
+      </div>
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--text)">Role *</label>
+        <select id="newFacultyRole" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+          <option>Faculty · CCS</option>
+          <option>Faculty · CED</option>
+          <option>Faculty · CAD</option>
+          <option>Department Chair</option>
+        </select>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--text)">Phone</label>
+        <input type="tel" id="newFacultyPhone" placeholder="+63 912 345 6789" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+    </div>
+    <div style="padding:15px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeAddFacultyModal()" style="padding:10px 20px;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">Cancel</button>
+      <button onclick="saveFacultyMember()" style="padding:10px 20px;background:var(--maroon);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">Add Faculty</button>
+    </div>
+  </div>
+</div>
+
+<!-- Faculty Profile Modal -->
+<div id="facultyProfileModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;overflow-y:auto">
+  <div style="background:#fff;margin:20px auto;width:90%;max-width:600px;border-radius:var(--radius);box-shadow:0 10px 40px rgba(0,0,0,0.2)">
+    <button onclick="closeFacultyProfile()" style="position:absolute;top:15px;right:15px;background:none;border:none;font-size:24px;cursor:pointer;z-index:10">&times;</button>
+    <div id="facultyProfileContent" style="padding:20px"></div>
+  </div>
+</div>
+
+<!-- Add Designation Modal -->
+<div id="addDesignationModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--radius);width:90%;max-width:500px;box-shadow:0 10px 40px rgba(0,0,0,0.2)">
+    <div style="padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h2 style="margin:0;font-size:18px;color:var(--text)">Add Faculty Designation</h2>
+      <button onclick="closeAddDesignationModal()" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button>
+    </div>
+    <div style="padding:20px">
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px">Role *</label>
+        <input type="text" id="newDesignationRole" placeholder="e.g. Department Chair" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px">Department *</label>
+        <select id="newDesignationDept" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+          <option>Select Department</option>
+          <option>College of Computer Studies</option>
+          <option>College of Engineering</option>
+          <option>College of Arts</option>
+        </select>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px">Faculty Member *</label>
+        <select id="newDesignationFaculty" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box"></select>
+      </div>
+    </div>
+    <div style="padding:15px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeAddDesignationModal()" style="padding:10px 20px;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">Cancel</button>
+      <button onclick="saveDesignation()" style="padding:10px 20px;background:var(--maroon);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">Add Designation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Curriculum Modal -->
+<div id="addCurriculumModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--radius);width:90%;max-width:500px;box-shadow:0 10px 40px rgba(0,0,0,0.2)">
+    <div style="padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h2 style="margin:0;font-size:18px;color:var(--text)">Add Academic Program</h2>
+      <button onclick="closeAddCurriculumModal()" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button>
+    </div>
+    <div style="padding:20px">
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px">Program Name *</label>
+        <input type="text" id="newProgramName" placeholder="e.g. BS Computer Science" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px">Program Code *</label>
+        <input type="text" id="newProgramCode" placeholder="e.g. BSCS" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:15px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px">Total Units *</label>
+        <input type="number" id="newProgramUnits" placeholder="120" min="100" max="200" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:5px">Semesters *</label>
+        <input type="number" id="newProgramSemesters" placeholder="8" min="4" max="12" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;box-sizing:border-box">
+      </div>
+    </div>
+    <div style="padding:15px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeAddCurriculumModal()" style="padding:10px 20px;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">Cancel</button>
+      <button onclick="saveProgram()" style="padding:10px 20px;background:var(--maroon);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">Add Program</button>
+    </div>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>

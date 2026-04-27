@@ -1325,60 +1325,9 @@ select option{background:#fff;color:var(--text)}
   background-color: #e63535;
 }
 
-/* Modal Styles */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 200;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  animation: fadeIn 0.3s ease;
-}
-
-.modal.show {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background-color: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-content.modal-lg {
-  max-width: 700px;
-}
-
-.close {
-  color: #999;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.close:hover,
-.close:focus {
-  color: #000;
-}
-
-.modal-content h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #333;
-  font-size: 24px;
-}
+/* Modal Styles - REMOVED (conflicting with overlay-based modals) */
+/* .modal { display: none; ... } */
+/* .modal.show { display: flex; ... } */
 
 /* Form Styles */
 .form-group {
